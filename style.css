@@ -30,109 +30,251 @@ body.time-final {
     background: url('Present_BG.png') center/cover no-repeat;
 }
 
+/* Main Container - Three Column Layout */
 #container {
     position: relative;
     width: 100%;
     height: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 2rem;
+    justify-content: space-between;
+    padding: 0 3rem;
 }
 
-/* The Device Container */
+/* ========================================
+   LEFT SIDE: CARD DECK (FANNED)
+   ======================================== */
+#cards-area {
+    position: relative;
+    width: 200px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.card {
+    position: absolute;
+    width: 130px;
+    height: 195px;
+    cursor: grab;
+    transition: all 0.3s ease;
+    opacity: 0.95;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+}
+
+/* Fan effect - cards overlapping and rotated */
+.card:nth-child(1) {
+    transform: translateX(-40px) translateY(-10px) rotate(-12deg);
+    z-index: 1;
+}
+
+.card:nth-child(2) {
+    transform: translateX(0) translateY(5px) rotate(0deg);
+    z-index: 2;
+}
+
+.card:nth-child(3) {
+    transform: translateX(40px) translateY(-10px) rotate(12deg);
+    z-index: 3;
+}
+
+.card:hover {
+    transform: translateY(-20px) scale(1.05) rotate(0deg) !important;
+    opacity: 1;
+    z-index: 10 !important;
+    filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.8));
+}
+
+.card:active {
+    cursor: grabbing;
+    transform: translateY(-15px) scale(1.0) rotate(0deg) !important;
+}
+
+.card.inserted {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(100vh) !important;
+}
+
+.card img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* ========================================
+   CENTER: THE DEVICE
+   ======================================== */
 #device {
     position: relative;
-    width: 500px;
+    width: 550px;
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
+    justify-content: center;
+    z-index: 5;
 }
 
-/* Button */
+/* Two Physical Buttons (fixed hitboxes at top) */
 #buttons {
+    position: absolute;
+    top: 8%;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    justify-content: center;
+    gap: 80px;
+    z-index: 20;
 }
 
 .device-button {
-    width: 100px;
+    width: 90px;
     height: 45px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: 'Courier New', monospace;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
-    color: rgba(255, 255, 255, 0.8);
-    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 1.5px;
 }
 
 .device-button:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.6);
-    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .device-button:active {
-    transform: translateY(0);
+    transform: scale(0.95);
 }
 
 .device-button:disabled {
-    opacity: 0.3;
+    opacity: 0.2;
     cursor: not-allowed;
 }
 
 .device-button.active {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 1);
 }
 
-/* Screen Area */
+/* Screen Area (portal origin) - moved down slightly */
 #screen {
-    width: 100%;
-    height: 450px;
+    position: absolute;
+    top: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 85%;
+    height: 48%;
     background: rgba(0, 0, 0, 0.7);
-    border: 3px solid rgba(255, 255, 255, 0.3);
+    border: 3px solid rgba(255, 255, 255, 0.25);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
-    position: relative;
     overflow: hidden;
-    transition: all 0.5s ease;
+    transition: all 0.4s ease;
+    z-index: 15;
 }
 
 #screen.in-memory {
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Inventory (inside screen, top area) */
-#inventory {
+#screen-content {
+    flex: 1;
     display: flex;
-    gap: 1rem;
-    padding: 1rem;
-    justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    justify-content: center;
+    position: relative;
+    padding: 2rem;
+}
+
+#dialogue-box {
+    width: 100%;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+}
+
+#dialogue-text {
+    font-size: 15px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    white-space: pre-line;
+}
+
+/* Card Slot (bottom edge of viewport) */
+#card-slot {
+    position: absolute;
+    bottom: 2%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 75%;
+    height: 70px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+#card-slot.has-card {
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+#card-slot.drag-over {
+    border-color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+#slot-indicator {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 3px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* ========================================
+   RIGHT SIDE: INVENTORY PANEL
+   ======================================== */
+#inventory-panel {
+    position: relative;
+    width: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
     z-index: 10;
 }
 
 .inventory-slot {
-    width: 60px;
-    height: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
+    transition: all 0.3s ease;
 }
 
 .inventory-slot.locked {
@@ -140,8 +282,8 @@ body.time-final {
 }
 
 .object-icon {
-    width: 50px;
-    height: 50px;
+    width: 70px;
+    height: 70px;
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
@@ -172,163 +314,26 @@ body.time-final {
     opacity: 1;
 }
 
-/* Screen Content Area */
-#screen-content {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    padding: 2rem;
-}
-
-/* Memory backgrounds now handled by portal overlay system */
-
-/* Dialogue Box */
-#dialogue-box {
-    width: 100%;
-    padding: 2rem;
-    background: rgba(0, 0, 0, 0.6);
-    border-radius: 8px;
-    position: relative;
-}
-
-#dialogue-text {
-    font-size: 16px;
-    line-height: 1.8;
-    color: rgba(255, 255, 255, 0.9);
-    text-align: center;
-    white-space: pre-line;
-    animation: fadeIn 0.8s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Card Slot */
-#card-slot {
-    width: 100%;
-    height: 60px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    transition: all 0.3s ease;
-}
-
-#card-slot.has-card {
-    border-color: rgba(255, 255, 255, 0.6);
-    background: rgba(255, 255, 255, 0.15);
-}
-
-#card-slot.drag-over {
-    border-color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.25);
-}
-
-#slot-indicator {
+.object-label {
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.5);
-    letter-spacing: 3px;
-    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-/* Cards Area */
-#cards-area {
-    display: flex;
-    gap: 2rem;
-    justify-content: center;
-    align-items: center;
-}
-
-.card {
-    width: 110px;
-    height: 165px;
-    cursor: grab;
-    transition: all 0.3s ease;
-    opacity: 0.9;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
-}
-
-.card:hover {
-    transform: translateY(-10px);
-    opacity: 1;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.7));
-}
-
-.card:active {
-    cursor: grabbing;
-    transform: scale(0.95);
-}
-
-.card.inserted {
-    opacity: 0.3;
-    transform: scale(0.9);
-    pointer-events: none;
-}
-
-.card img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    pointer-events: none;
-}
-
-/* Object Obtained Display */
-.object-obtained {
-    position: absolute;
-    width: 150px;
-    height: 150px;
-    opacity: 0;
-    animation: objectObtained 2.5s ease forwards;
-    filter: blur(6px);
-    z-index: 100;
-}
-
-@keyframes objectObtained {
-    0% {
-        opacity: 0;
-        transform: scale(0.5);
-    }
-    30% {
-        opacity: 0.9;
-        transform: scale(1.2);
-    }
-    70% {
-        opacity: 0.9;
-        transform: scale(1);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-}
-
-/* Final State */
+/* ========================================
+   FINAL STATE
+   ======================================== */
 body.time-final #device {
     animation: gentlePulse 4s ease-in-out infinite;
 }
 
-body.time-final #inventory {
+body.time-final #inventory-panel {
     opacity: 0;
     pointer-events: none;
+    transition: opacity 1s ease;
 }
 
-body.time-final #dialogue-box {
-    background: rgba(0, 0, 0, 0.8);
-}
-
-@keyframes gentlePulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-}
-
-/* Hide cards in final state */
 body.time-final #cards-area {
     opacity: 0;
     pointer-events: none;
@@ -339,6 +344,17 @@ body.time-final #card-slot {
     opacity: 0;
     pointer-events: none;
     transition: opacity 1s ease;
+}
+
+body.time-final #buttons {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+
+@keyframes gentlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
 }
 
 /* ========================================
@@ -436,11 +452,6 @@ body.time-final #card-slot {
 @keyframes pulseHint {
     0%, 100% { opacity: 0.4; }
     50% { opacity: 0.8; }
-}
-
-/* Hide device UI when in memory */
-#memoryOverlay.active ~ #container {
-    /* Device UI remains visible beneath but not interactive */
 }
 
 /* Accessibility */

@@ -27,7 +27,8 @@ const cardToObject = {
 const body = document.body;
 const screen = document.getElementById('screen');
 const dialogueText = document.getElementById('dialogue-text');
-const btnEnter = document.getElementById('btn-enter');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
 const cardSlot = document.getElementById('card-slot');
 const slotIndicator = document.getElementById('slot-indicator');
 const cards = document.querySelectorAll('.card');
@@ -40,11 +41,11 @@ const memoryDialogueBox = document.getElementById('memoryDialogueBox');
 const memoryDialogueText = document.getElementById('memoryDialogueText');
 const memoryHint = document.getElementById('memoryHint');
 
-// Inventory slots
+// Inventory slots (now in #inventory-panel)
 const inventorySlots = {
-    page: document.querySelector('[data-object="page"]'),
-    bag: document.querySelector('[data-object="bag"]'),
-    watch: document.querySelector('[data-object="watch"]')
+    page: document.querySelector('#inventory-panel [data-object="page"]'),
+    bag: document.querySelector('#inventory-panel [data-object="bag"]'),
+    watch: document.querySelector('#inventory-panel [data-object="watch"]')
 };
 
 // Memory Content (PAST)
@@ -107,7 +108,9 @@ function init() {
 
 // Event Listeners
 function attachEventListeners() {
-    btnEnter.addEventListener('click', handleEnterButton);
+    // Two physical buttons
+    btnLeft.addEventListener('click', handleLeftButton);
+    btnRight.addEventListener('click', handleRightButton);
 
     // Card interactions
     cards.forEach(card => {
@@ -129,12 +132,33 @@ function attachEventListeners() {
         e.stopPropagation();
     });
 
-    // Enter key fallback for memory progression
+    // Enter key fallback
     document.addEventListener('keydown', handleKeyDown);
 }
 
-// Handle ENTER button
-function handleEnterButton() {
+// Handle LEFT button (toggle PAST/NOW)
+function handleLeftButton() {
+    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
+        return; // Cannot toggle during memory or in final state
+    }
+
+    // Toggle between PAST and NOW
+    if (state.timeMode === 'past') {
+        // Can only switch to NOW if all objects collected
+        if (allObjectsCollected()) {
+            transitionToNow();
+        }
+    } else if (state.timeMode === 'now') {
+        // Can switch back to PAST (e.g., to review)
+        state.timeMode = 'past';
+        body.classList.remove('time-now');
+        body.classList.add('time-past');
+        updateButtonState();
+    }
+}
+
+// Handle RIGHT button (ENTER/confirm)
+function handleRightButton() {
     if (state.experienceState === 'final') return;
 
     if (state.timeMode === 'past') {
@@ -166,9 +190,9 @@ function handleKeyDown(e) {
         if (state.experienceState === 'in_memory') {
             progressMemory();
         }
-        // In other states: use button handler
+        // In other states: use right button handler
         else if (state.experienceState !== 'final') {
-            handleEnterButton();
+            handleRightButton();
         }
     }
 }
@@ -507,15 +531,30 @@ function updateInventoryUI() {
 
 // Update button state
 function updateButtonState() {
+    // Update left button label and state
+    if (state.timeMode === 'past') {
+        btnLeft.querySelector('.button-label').textContent = 'PAST';
+        btnLeft.disabled = !allObjectsCollected();
+    } else if (state.timeMode === 'now') {
+        btnLeft.querySelector('.button-label').textContent = 'NOW';
+        btnLeft.disabled = false;
+    }
+
+    // Disable left button during memory or final
+    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
+        btnLeft.disabled = true;
+    }
+
+    // Update right button (ENTER) state
     if (state.experienceState === 'final') {
-        btnEnter.disabled = true;
-        btnEnter.classList.remove('active');
+        btnRight.disabled = true;
+        btnRight.classList.remove('active');
     } else if (state.experienceState === 'card_ready' || state.experienceState === 'in_memory') {
-        btnEnter.disabled = false;
-        btnEnter.classList.add('active');
+        btnRight.disabled = false;
+        btnRight.classList.add('active');
     } else {
-        btnEnter.disabled = true;
-        btnEnter.classList.remove('active');
+        btnRight.disabled = true;
+        btnRight.classList.remove('active');
     }
 }
 
