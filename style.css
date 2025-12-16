@@ -4,16 +4,30 @@
     box-sizing: border-box;
 }
 
+/* Body - Full Viewport Device Backgrounds */
 body {
     font-family: 'Courier New', monospace;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
     color: #e0e0e0;
     height: 100vh;
+    width: 100vw;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    transition: background 1.5s ease;
+    transition: background-image 1.5s ease;
+}
+
+/* Time State Backgrounds */
+body.time-past {
+    background: url('DevicePast.png') center/cover no-repeat;
+}
+
+body.time-now {
+    background: url('DeviceNow.png') center/cover no-repeat;
+}
+
+body.time-final {
+    background: url('Present_BG.png') center/cover no-repeat;
 }
 
 #container {
@@ -24,53 +38,43 @@ body {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    gap: 3rem;
+    gap: 2rem;
 }
 
-/* The Device */
+/* The Device Container */
 #device {
     position: relative;
     width: 500px;
-    height: 700px;
-    background: url('DeviceNow.png') center/contain no-repeat;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 60px 50px 80px 50px;
-    transition: background-image 0.8s ease;
+    gap: 1.5rem;
 }
 
-#device.past {
-    background-image: url('DevicePast.png');
-}
-
-/* Buttons (fixed positions above screen) */
+/* Button */
 #buttons {
     display: flex;
-    gap: 40px;
-    margin-bottom: 20px;
-    width: 100%;
     justify-content: center;
 }
 
 .device-button {
-    width: 80px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 100px;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: 'Courier New', monospace;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
-    color: rgba(255, 255, 255, 0.7);
-    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.8);
+    letter-spacing: 2px;
 }
 
-.device-button:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
+.device-button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.6);
     transform: translateY(-2px);
 }
 
@@ -81,50 +85,134 @@ body {
 .device-button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
-    transform: none;
 }
 
 .device-button.active {
     background: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.6);
+    border-color: rgba(255, 255, 255, 0.7);
 }
 
-/* Screen Area (portal into memory) */
+/* Screen Area */
 #screen {
-    flex: 1;
     width: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    height: 450px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 3px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
     position: relative;
     overflow: hidden;
     transition: all 0.5s ease;
 }
 
-#screen.memory-active {
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+#screen.in-memory {
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
 }
 
-#screen-content {
-    width: 100%;
-    height: 100%;
+/* Inventory (inside screen, top area) */
+#inventory {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10;
+}
+
+.inventory-slot {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
-    text-align: center;
     position: relative;
 }
 
-#screen-text {
+.inventory-slot.locked {
+    opacity: 0.4;
+}
+
+.object-icon {
+    width: 50px;
+    height: 50px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: filter 0.8s ease;
+}
+
+/* Object Icon States */
+.inventory-slot[data-object="page"] .object-icon.has-object {
+    background-image: url('Object_Page.png');
+}
+
+.inventory-slot[data-object="bag"] .object-icon.has-object {
+    background-image: url('Object_Bag.png');
+}
+
+.inventory-slot[data-object="watch"] .object-icon.has-object {
+    background-image: url('Object_Watch.png');
+}
+
+/* Blurry State */
+.object-icon.blurry {
+    filter: blur(6px);
+    opacity: 0.7;
+}
+
+.object-icon.clarified {
+    filter: blur(0);
+    opacity: 1;
+}
+
+/* Screen Content Area */
+#screen-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 2rem;
+}
+
+/* Memory Background Overlays */
+body.time-past #screen.in-memory.memory-voice {
+    background: linear-gradient(135deg, rgba(20, 30, 60, 0.9), rgba(40, 20, 40, 0.9)),
+                rgba(0, 0, 0, 0.5);
+}
+
+body.time-past #screen.in-memory.memory-space {
+    background: linear-gradient(135deg, rgba(40, 20, 20, 0.9), rgba(60, 30, 20, 0.9)),
+                rgba(0, 0, 0, 0.5);
+}
+
+body.time-past #screen.in-memory.memory-time {
+    background: linear-gradient(135deg, rgba(20, 40, 40, 0.9), rgba(30, 50, 30, 0.9)),
+                rgba(0, 0, 0, 0.5);
+}
+
+/* Dialogue Box */
+#dialogue-box {
+    width: 100%;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    position: relative;
+}
+
+#dialogue-text {
     font-size: 16px;
     line-height: 1.8;
-    color: rgba(255, 255, 255, 0.8);
-    max-width: 90%;
+    color: rgba(255, 255, 255, 0.9);
+    text-align: center;
+    white-space: pre-line;
     animation: fadeIn 0.8s ease;
 }
 
@@ -133,54 +221,35 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Memory visual layer */
-#screen-content::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-size: cover;
-    background-position: center;
-    opacity: 0;
-    transition: opacity 0.8s ease;
-    pointer-events: none;
-}
-
-#screen.showing-object #screen-content::before {
-    opacity: 0.4;
-}
-
 /* Card Slot */
 #card-slot {
     width: 100%;
     height: 60px;
-    background: rgba(0, 0, 0, 0.4);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    margin-top: 20px;
     transition: all 0.3s ease;
 }
 
 #card-slot.has-card {
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 #card-slot.drag-over {
-    border-color: rgba(255, 255, 255, 0.7);
-    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.25);
 }
 
 #slot-indicator {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.4);
-    letter-spacing: 2px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 3px;
+    font-weight: bold;
 }
 
 /* Cards Area */
@@ -192,18 +261,18 @@ body {
 }
 
 .card {
-    width: 120px;
-    height: 180px;
+    width: 110px;
+    height: 165px;
     cursor: grab;
     transition: all 0.3s ease;
     opacity: 0.9;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
 }
 
 .card:hover {
     transform: translateY(-10px);
     opacity: 1;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6));
+    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.7));
 }
 
 .card:active {
@@ -224,43 +293,66 @@ body {
     pointer-events: none;
 }
 
-/* Memory object display */
-.memory-object {
+/* Object Obtained Display */
+.object-obtained {
     position: absolute;
     width: 150px;
     height: 150px;
     opacity: 0;
-    animation: objectAppear 2s ease forwards;
+    animation: objectObtained 2.5s ease forwards;
+    filter: blur(6px);
+    z-index: 100;
 }
 
-@keyframes objectAppear {
+@keyframes objectObtained {
     0% {
         opacity: 0;
         transform: scale(0.5);
     }
-    50% {
-        opacity: 1;
-        transform: scale(1.1);
+    30% {
+        opacity: 0.9;
+        transform: scale(1.2);
     }
-    100% {
-        opacity: 0.8;
+    70% {
+        opacity: 0.9;
         transform: scale(1);
     }
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
 }
 
-/* Final state styling */
-body.final-state {
-    background: url('Present_BG.png') center/cover no-repeat;
-    background-size: cover;
-}
-
-body.final-state #device {
+/* Final State */
+body.time-final #device {
     animation: gentlePulse 4s ease-in-out infinite;
+}
+
+body.time-final #inventory {
+    opacity: 0;
+    pointer-events: none;
+}
+
+body.time-final #dialogue-box {
+    background: rgba(0, 0, 0, 0.8);
 }
 
 @keyframes gentlePulse {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.02); }
+}
+
+/* Hide cards in final state */
+body.time-final #cards-area {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+
+body.time-final #card-slot {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
 }
 
 /* Accessibility */

@@ -6,24 +6,37 @@
     <title>Memory Device</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="time-past">
     <div id="container">
-        <!-- The Device -->
+        <!-- The Device (full viewport background) -->
         <div id="device">
-            <!-- Two Buttons (fixed positions above screen) -->
+            <!-- Single Button (ENTER) -->
             <div id="buttons">
-                <button id="btn-left" class="device-button" aria-label="Switch time">
-                    <span class="button-label">PAST</span>
-                </button>
-                <button id="btn-right" class="device-button" aria-label="Activate memory">
+                <button id="btn-enter" class="device-button" aria-label="Enter">
                     <span class="button-label">ENTER</span>
                 </button>
             </div>
 
-            <!-- Screen Area (portal into memory) -->
+            <!-- Screen Area -->
             <div id="screen">
+                <!-- Inventory (inside screen) -->
+                <div id="inventory">
+                    <div class="inventory-slot" data-object="page">
+                        <div class="object-icon"></div>
+                    </div>
+                    <div class="inventory-slot" data-object="bag">
+                        <div class="object-icon"></div>
+                    </div>
+                    <div class="inventory-slot" data-object="watch">
+                        <div class="object-icon"></div>
+                    </div>
+                </div>
+
+                <!-- Screen Content (memory/dialogue) -->
                 <div id="screen-content">
-                    <p id="screen-text"></p>
+                    <div id="dialogue-box">
+                        <p id="dialogue-text">...</p>
+                    </div>
                 </div>
             </div>
 
