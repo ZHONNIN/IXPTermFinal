@@ -1,154 +1,106 @@
 // State System
 const state = {
-    timeMode: 'present', // 'past' or 'present'
-    insertedCard: null, // null, 'voice', 'space', 'time'
-    memoryObjects: new Set(), // 'page', 'bag', 'watch'
-    experienceState: 'idle', // 'idle', 'card_ready', 'in_memory', 'resolution', 'final'
+    timeMode: 'past', // 'past', 'now', 'final'
+    experienceState: 'idle', // 'idle', 'card_ready', 'in_memory', 'final'
+    insertedCard: null, // 'voice', 'space', 'time'
+
+    // Object states: 'locked', 'blurry_collected', 'clarified_submitted'
+    objects: {
+        page: 'locked',
+        bag: 'locked',
+        watch: 'locked'
+    },
+
     currentMemoryStep: 0,
-    currentMemory: null,
-    visitedMemories: new Set() // tracks which card+time combinations have been experienced
+    currentMemory: null
+};
+
+// Card to Object mapping
+const cardToObject = {
+    voice: 'page',
+    space: 'bag',
+    time: 'watch'
 };
 
 // DOM Elements
-const device = document.getElementById('device');
+const body = document.body;
 const screen = document.getElementById('screen');
-const screenText = document.getElementById('screen-text');
-const screenContent = document.getElementById('screen-content');
-const btnLeft = document.getElementById('btn-left');
-const btnRight = document.getElementById('btn-right');
+const dialogueText = document.getElementById('dialogue-text');
+const btnEnter = document.getElementById('btn-enter');
 const cardSlot = document.getElementById('card-slot');
 const slotIndicator = document.getElementById('slot-indicator');
 const cards = document.querySelectorAll('.card');
-const cardsArea = document.getElementById('cards-area');
 
-// Memory Content
-const memories = {
-    voice: {
-        past: {
-            steps: [
-                "I hear it again.",
-                "The voice that made me small.",
-                "Every word was a rule I couldn't understand.",
-                "Every silence was a test I failed.",
-                "I tried to make myself quieter.\nSmaller.\nGone.",
-                "But I couldn't disappear completely.",
-                "So I learned to write instead.",
-                "Words I could control.\nWords that were mine."
-            ],
-            object: 'page',
-            objectImage: 'Object_Page.png'
-        },
-        present: {
-            steps: [
-                "I remember the voice now.",
-                "Not the words anymore.",
-                "Just the feeling of being small.",
-                "I understand now:\nit wasn't about me.",
-                "It was never about me.",
-                "That voice was someone else's pain,\npassed down like a broken heirloom.",
-                "I chose not to carry it further.",
-                "I found my own voice instead."
-            ],
-            object: 'page',
-            objectImage: 'Object_Page.png'
-        }
-    },
-    space: {
-        past: {
-            steps: [
-                "The room feels too big.",
-                "And too small at the same time.",
-                "Nowhere is safe.",
-                "The door opens—or it doesn't.",
-                "It doesn't matter.\nThe feeling is the same.",
-                "I learned to pack everything\nthat mattered\ninto something I could carry.",
-                "A bag.\nAlways ready.",
-                "Ready to leave.\nReady to stay invisible."
-            ],
-            object: 'bag',
-            objectImage: 'Object_Bag.png'
-        },
-        present: {
-            steps: [
-                "I still carry that bag sometimes.",
-                "But now I know:\nI don't have to run.",
-                "That room is far away now.",
-                "I can visit it in memory,\nbut I don't live there anymore.",
-                "I built my own space.",
-                "A place where the door is mine.",
-                "Where I decide who enters.",
-                "Where I am not small."
-            ],
-            object: 'bag',
-            objectImage: 'Object_Bag.png'
-        }
-    },
-    time: {
-        past: {
-            steps: [
-                "Time moves strangely here.",
-                "Some days last forever.",
-                "Some moments vanish before I can hold them.",
-                "I watch the clock.",
-                "Counting minutes until it's over.",
-                "Counting hours until it happens again.",
-                "Time is not a line.\nIt's a spiral.",
-                "Always circling back\nto the same place."
-            ],
-            object: 'watch',
-            objectImage: 'Object_Watch.png'
-        },
-        present: {
-            steps: [
-                "I still notice the time.",
-                "But I don't count it the same way.",
-                "The spiral broke.",
-                "Time moves forward now.",
-                "Not smoothly—\nnothing is ever smooth.",
-                "But it moves.",
-                "I am not trapped in that moment anymore.",
-                "I carry it with me, but I am not made of it."
-            ],
-            object: 'watch',
-            objectImage: 'Object_Watch.png'
-        }
-    }
+// Inventory slots
+const inventorySlots = {
+    page: document.querySelector('[data-object="page"]'),
+    bag: document.querySelector('[data-object="bag"]'),
+    watch: document.querySelector('[data-object="watch"]')
 };
 
-// Resolution content (when all objects are collected)
-const resolution = {
-    steps: [
-        "Three pieces.",
-        "Voice. Space. Time.",
-        "The fragments of who I was.",
-        "I cannot change what happened.",
-        "But I can choose what it becomes inside me.",
-        "Not a wound that defines me.",
-        "Not a story that ends me.",
-        "A foundation.",
-        "Something I built myself from."
+// Memory Content (PAST)
+const memories = {
+    voice: [
+        "I hear it again.",
+        "The voice that made me small.",
+        "Every word was a rule I couldn't understand.",
+        "Every silence was a test I failed.",
+        "I tried to make myself quieter.\nSmaller.\nGone.",
+        "But I couldn't disappear completely.",
+        "So I learned to write instead.",
+        "Words I could control.\nWords that were mine."
+    ],
+    space: [
+        "The room feels too big.",
+        "And too small at the same time.",
+        "Nowhere is safe.",
+        "The door opens—or it doesn't.",
+        "It doesn't matter.\nThe feeling is the same.",
+        "I learned to pack everything that mattered\ninto something I could carry.",
+        "A bag.\nAlways ready.",
+        "Ready to leave.\nReady to stay invisible."
+    ],
+    time: [
+        "Time moves strangely here.",
+        "Some days last forever.",
+        "Some moments vanish before I can hold them.",
+        "I watch the clock.",
+        "Counting minutes until it's over.",
+        "Counting hours until it happens again.",
+        "Time is not a line.\nIt's a spiral.",
+        "Always circling back to the same place."
     ]
 };
 
-// Final state
-const finalMessage = "I understand now.\n\nI respect who I had to become.";
+// NOW Mode - Default Text
+const nowDefaultText = "I remember these things.\nBut remembering is not the same as understanding.";
+
+// Clarification Dialogue (NOW mode)
+const clarificationDialogue = {
+    page: "I thought it was just words.\nBut I hear how they stayed with me.\n\nI name them now.\nThey no longer speak for me.",
+    bag: "I carried this without knowing why.\n\nIt wasn't weight.\nIt was fear of being seen.\n\nI don't need to carry it like this anymore.",
+    watch: "I waited for it to end.\n\nI didn't know I was already moving forward.\n\nTime didn't trap me.\nI survived it."
+};
+
+// Already clarified message
+const alreadyClarifiedText = "I have already understood this.";
+
+// Final Message
+const finalMessage = "I can't change what happened.\n\nBut I can choose\nwhat it becomes inside me.";
 
 // Initialize
 function init() {
-    updateUI();
+    setDialogue("...");
+    updateInventoryUI();
     attachEventListeners();
-    setScreenText("...");
+    updateButtonState();
 }
 
 // Event Listeners
 function attachEventListeners() {
-    // Left button: switch time
-    btnLeft.addEventListener('click', handleTimeSwitch);
+    btnEnter.addEventListener('click', handleEnterButton);
 
-    // Right button: activate memory
-    btnRight.addEventListener('click', handleMemoryActivation);
-
-    // Card drag and drop
+    // Card interactions
     cards.forEach(card => {
         card.addEventListener('dragstart', handleDragStart);
         card.addEventListener('dragend', handleDragEnd);
@@ -161,35 +113,19 @@ function attachEventListeners() {
     cardSlot.addEventListener('click', handleSlotClick);
 }
 
-// Handle time switch (left button)
-function handleTimeSwitch() {
-    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
-        return; // Cannot switch time during memory or in final state
-    }
+// Handle ENTER button
+function handleEnterButton() {
+    if (state.experienceState === 'final') return;
 
-    state.timeMode = state.timeMode === 'past' ? 'present' : 'past';
-    updateUI();
-
-    if (state.insertedCard) {
-        setScreenText("The device hums softly.\n\nReady.");
+    if (state.timeMode === 'past') {
+        handleEnterInPast();
+    } else if (state.timeMode === 'now') {
+        handleEnterInNow();
     }
 }
 
-// Handle memory activation (right button)
-function handleMemoryActivation() {
-    if (state.experienceState === 'final') return;
-
-    // Check if we should enter resolution
-    if (state.memoryObjects.size === 3 && state.experienceState !== 'resolution') {
-        enterResolution();
-        return;
-    }
-
-    if (state.experienceState === 'resolution') {
-        progressResolution();
-        return;
-    }
-
+// ENTER in PAST mode
+function handleEnterInPast() {
     if (state.experienceState === 'card_ready' && state.insertedCard) {
         enterMemory();
     } else if (state.experienceState === 'in_memory') {
@@ -197,138 +133,163 @@ function handleMemoryActivation() {
     }
 }
 
-// Enter memory state
+// Enter memory (PAST)
 function enterMemory() {
-    const memoryKey = `${state.insertedCard}_${state.timeMode}`;
-    const memory = memories[state.insertedCard][state.timeMode];
-
     state.experienceState = 'in_memory';
-    state.currentMemory = memory;
+    state.currentMemory = memories[state.insertedCard];
     state.currentMemoryStep = 0;
-    screen.classList.add('memory-active');
 
-    setScreenText(memory.steps[0]);
-    updateUI();
+    screen.classList.add('in-memory', `memory-${state.insertedCard}`);
+    setDialogue(state.currentMemory[0]);
+    updateButtonState();
 }
 
 // Progress through memory steps
 function progressMemory() {
     state.currentMemoryStep++;
-    const memory = state.currentMemory;
 
-    if (state.currentMemoryStep < memory.steps.length) {
-        setScreenText(memory.steps[state.currentMemoryStep]);
+    if (state.currentMemoryStep < state.currentMemory.length) {
+        setDialogue(state.currentMemory[state.currentMemoryStep]);
     } else {
-        // Memory complete - give object
         completeMemory();
     }
 }
 
-// Complete memory and grant object
+// Complete memory and obtain object (blurry)
 function completeMemory() {
-    const memory = state.currentMemory;
-    const objectName = memory.object;
+    const objectName = cardToObject[state.insertedCard];
 
-    // Add object to collection
-    state.memoryObjects.add(objectName);
+    // Set object to blurry_collected
+    state.objects[objectName] = 'blurry_collected';
 
-    // Mark this memory as visited
-    const memoryKey = `${state.insertedCard}_${state.timeMode}`;
-    state.visitedMemories.add(memoryKey);
+    // Show object briefly (blurred)
+    showObjectObtained(objectName);
 
-    // Show object
-    showObject(memory.objectImage, objectName);
+    // Update inventory
+    updateInventoryUI();
 
-    // Return to ready state
+    // Return to idle after delay
     setTimeout(() => {
-        screen.classList.remove('memory-active');
-        screen.classList.remove('showing-object');
+        exitMemory();
+        ejectCard();
 
-        // Check if all objects collected
-        if (state.memoryObjects.size === 3) {
-            state.experienceState = 'idle';
-            ejectCard();
+        // Check if all objects collected → transition to NOW
+        if (allObjectsCollected()) {
             setTimeout(() => {
-                setScreenText("Something has changed.\n\n[Press ENTER]");
-            }, 800);
+                transitionToNow();
+            }, 1000);
         } else {
-            state.experienceState = 'card_ready';
-            setScreenText("You can remove the card now.");
+            setDialogue("...");
         }
-        updateUI();
-    }, 3000);
+    }, 2500);
 }
 
-// Show memory object
-function showObject(imagePath, objectName) {
-    screen.classList.add('showing-object');
-
+// Show object obtained (blurred)
+function showObjectObtained(objectName) {
     const objectImg = document.createElement('img');
-    objectImg.src = imagePath;
-    objectImg.className = 'memory-object';
+    objectImg.src = `Object_${objectName.charAt(0).toUpperCase() + objectName.slice(1)}.png`;
+    objectImg.className = 'object-obtained';
     objectImg.alt = objectName;
 
-    screenContent.innerHTML = '';
-    screenContent.appendChild(objectImg);
+    screen.appendChild(objectImg);
 
-    const obtainedText = document.createElement('p');
-    obtainedText.id = 'screen-text';
-    obtainedText.textContent = `[${objectName}]`;
-    screenContent.appendChild(obtainedText);
+    setTimeout(() => {
+        objectImg.remove();
+    }, 2500);
 }
 
-// Enter resolution state
-function enterResolution() {
-    state.experienceState = 'resolution';
+// Exit memory state
+function exitMemory() {
+    state.experienceState = 'idle';
+    state.currentMemory = null;
     state.currentMemoryStep = 0;
-    screen.classList.add('memory-active');
-
-    setScreenText(resolution.steps[0]);
-    updateUI();
+    screen.classList.remove('in-memory', 'memory-voice', 'memory-space', 'memory-time');
+    updateButtonState();
 }
 
-// Progress through resolution
-function progressResolution() {
-    state.currentMemoryStep++;
+// Check if all objects collected (blurry or clarified)
+function allObjectsCollected() {
+    return state.objects.page !== 'locked' &&
+           state.objects.bag !== 'locked' &&
+           state.objects.watch !== 'locked';
+}
 
-    if (state.currentMemoryStep < resolution.steps.length) {
-        setScreenText(resolution.steps[state.currentMemoryStep]);
-    } else {
-        enterFinalState();
+// Check if all objects clarified
+function allObjectsClarified() {
+    return state.objects.page === 'clarified_submitted' &&
+           state.objects.bag === 'clarified_submitted' &&
+           state.objects.watch === 'clarified_submitted';
+}
+
+// Transition to NOW mode
+function transitionToNow() {
+    state.timeMode = 'now';
+    body.classList.remove('time-past');
+    body.classList.add('time-now');
+
+    setDialogue(nowDefaultText);
+    updateButtonState();
+}
+
+// ENTER in NOW mode
+function handleEnterInNow() {
+    if (state.experienceState === 'card_ready' && state.insertedCard) {
+        clarifyObject();
     }
 }
 
-// Enter final state
-function enterFinalState() {
+// Clarify object (NOW mode)
+function clarifyObject() {
+    const objectName = cardToObject[state.insertedCard];
+
+    // Check object state
+    if (state.objects[objectName] === 'clarified_submitted') {
+        // Already clarified
+        setDialogue(alreadyClarifiedText);
+        return;
+    }
+
+    if (state.objects[objectName] === 'blurry_collected') {
+        // Clarify and submit
+        state.objects[objectName] = 'clarified_submitted';
+
+        // Show clarification dialogue
+        setDialogue(clarificationDialogue[objectName]);
+
+        // Update inventory (remove blur)
+        updateInventoryUI();
+
+        // Auto-eject card after delay
+        setTimeout(() => {
+            ejectCard();
+
+            // Check if all objects clarified → transition to FINAL
+            if (allObjectsClarified()) {
+                setTimeout(() => {
+                    transitionToFinal();
+                }, 1000);
+            } else {
+                setDialogue(nowDefaultText);
+            }
+        }, 3000);
+    }
+}
+
+// Transition to FINAL state
+function transitionToFinal() {
+    state.timeMode = 'final';
     state.experienceState = 'final';
 
-    // Show all three objects together
-    screenContent.innerHTML = '';
+    body.classList.remove('time-now');
+    body.classList.add('time-final');
 
-    const objectsContainer = document.createElement('div');
-    objectsContainer.style.cssText = 'display: flex; gap: 20px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;';
-
-    ['Object_Page.png', 'Object_Bag.png', 'Object_Watch.png'].forEach(img => {
-        const objImg = document.createElement('img');
-        objImg.src = img;
-        objImg.style.cssText = 'width: 80px; height: 80px; object-fit: contain; opacity: 0.6;';
-        objectsContainer.appendChild(objImg);
-    });
-
-    screenContent.appendChild(objectsContainer);
-
-    const finalText = document.createElement('p');
-    finalText.id = 'screen-text';
-    finalText.textContent = finalMessage;
-    screenContent.appendChild(finalText);
-
-    document.body.classList.add('final-state');
-    updateUI();
+    setDialogue(finalMessage);
+    updateButtonState();
 }
 
 // Card drag handlers
 function handleDragStart(e) {
-    if (state.experienceState === 'in_memory' || state.experienceState === 'resolution' || state.experienceState === 'final') {
+    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
         e.preventDefault();
         return;
     }
@@ -342,7 +303,7 @@ function handleDragEnd(e) {
 }
 
 function handleDragOver(e) {
-    if (state.experienceState === 'in_memory' || state.experienceState === 'resolution' || state.experienceState === 'final') {
+    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
         return;
     }
     e.preventDefault();
@@ -355,7 +316,7 @@ function handleDragLeave(e) {
 }
 
 function handleDrop(e) {
-    if (state.experienceState === 'in_memory' || state.experienceState === 'resolution' || state.experienceState === 'final') {
+    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
         return;
     }
 
@@ -369,12 +330,11 @@ function handleDrop(e) {
 
 // Card click (alternative to drag)
 function handleCardClick(e) {
-    if (state.experienceState === 'in_memory' || state.experienceState === 'resolution' || state.experienceState === 'final') {
+    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
         return;
     }
 
     if (state.insertedCard) {
-        // Eject current card first
         ejectCard();
         setTimeout(() => {
             insertCard(e.currentTarget.dataset.card);
@@ -386,27 +346,32 @@ function handleCardClick(e) {
 
 // Slot click (eject card)
 function handleSlotClick() {
-    if (state.insertedCard && state.experienceState !== 'in_memory' && state.experienceState !== 'resolution') {
+    if (state.insertedCard && state.experienceState !== 'in_memory' && state.experienceState !== 'final') {
         ejectCard();
     }
 }
 
-// Insert card into slot
+// Insert card
 function insertCard(cardType) {
     if (state.insertedCard) return;
 
     state.insertedCard = cardType;
     state.experienceState = 'card_ready';
-    state.currentMemoryStep = 0;
 
     const cardElement = document.querySelector(`[data-card="${cardType}"]`);
     cardElement.classList.add('inserted');
 
-    setScreenText("The device hums softly.\n\nReady.");
-    updateUI();
+    cardSlot.classList.add('has-card');
+    slotIndicator.textContent = cardType.toUpperCase();
+
+    if (state.timeMode === 'past') {
+        setDialogue("The device hums softly.\n\nReady.");
+    }
+
+    updateButtonState();
 }
 
-// Eject card from slot
+// Eject card
 function ejectCard() {
     if (!state.insertedCard) return;
 
@@ -415,68 +380,55 @@ function ejectCard() {
 
     state.insertedCard = null;
     state.experienceState = 'idle';
-    state.currentMemory = null;
-    state.currentMemoryStep = 0;
-    screen.classList.remove('memory-active');
 
-    setScreenText("...");
-    updateUI();
+    cardSlot.classList.remove('has-card');
+    slotIndicator.textContent = '';
+
+    if (state.timeMode === 'now' && !allObjectsClarified()) {
+        setDialogue(nowDefaultText);
+    }
+
+    updateButtonState();
 }
 
-// Update UI based on state
-function updateUI() {
-    // Update device appearance
-    if (state.timeMode === 'past') {
-        device.classList.add('past');
-    } else {
-        device.classList.remove('past');
-    }
+// Update inventory UI
+function updateInventoryUI() {
+    Object.keys(state.objects).forEach(objectName => {
+        const slot = inventorySlots[objectName];
+        const icon = slot.querySelector('.object-icon');
+        const objectState = state.objects[objectName];
 
-    // Update left button
-    btnLeft.querySelector('.button-label').textContent = state.timeMode.toUpperCase();
-    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
-        btnLeft.disabled = true;
-    } else {
-        btnLeft.disabled = false;
-    }
+        // Reset classes
+        slot.classList.remove('locked');
+        icon.classList.remove('has-object', 'blurry', 'clarified');
 
-    // Update right button
+        if (objectState === 'locked') {
+            slot.classList.add('locked');
+        } else if (objectState === 'blurry_collected') {
+            icon.classList.add('has-object', 'blurry');
+        } else if (objectState === 'clarified_submitted') {
+            icon.classList.add('has-object', 'clarified');
+        }
+    });
+}
+
+// Update button state
+function updateButtonState() {
     if (state.experienceState === 'final') {
-        btnRight.disabled = true;
-        btnRight.style.opacity = '0.2';
-    } else if (state.experienceState === 'card_ready' || state.experienceState === 'in_memory' || state.experienceState === 'resolution') {
-        btnRight.disabled = false;
-        btnRight.style.opacity = '1';
-        btnRight.classList.add('active');
-    } else if (state.memoryObjects.size === 3 && state.experienceState === 'idle') {
-        btnRight.disabled = false;
-        btnRight.style.opacity = '1';
-        btnRight.classList.add('active');
+        btnEnter.disabled = true;
+        btnEnter.classList.remove('active');
+    } else if (state.experienceState === 'card_ready' || state.experienceState === 'in_memory') {
+        btnEnter.disabled = false;
+        btnEnter.classList.add('active');
     } else {
-        btnRight.disabled = true;
-        btnRight.style.opacity = '0.5';
-        btnRight.classList.remove('active');
-    }
-
-    // Update card slot
-    if (state.insertedCard) {
-        cardSlot.classList.add('has-card');
-        slotIndicator.textContent = state.insertedCard.toUpperCase();
-    } else {
-        cardSlot.classList.remove('has-card');
-        slotIndicator.textContent = '';
+        btnEnter.disabled = true;
+        btnEnter.classList.remove('active');
     }
 }
 
-// Set screen text
-function setScreenText(text) {
-    // Clear screen content
-    screenContent.innerHTML = '';
-
-    const textElement = document.createElement('p');
-    textElement.id = 'screen-text';
-    textElement.textContent = text;
-    screenContent.appendChild(textElement);
+// Set dialogue text
+function setDialogue(text) {
+    dialogueText.textContent = text;
 }
 
 // Start the experience
