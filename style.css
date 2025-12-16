@@ -182,21 +182,7 @@ body.time-final {
     padding: 2rem;
 }
 
-/* Memory Background Overlays */
-body.time-past #screen.in-memory.memory-voice {
-    background: linear-gradient(135deg, rgba(20, 30, 60, 0.9), rgba(40, 20, 40, 0.9)),
-                rgba(0, 0, 0, 0.5);
-}
-
-body.time-past #screen.in-memory.memory-space {
-    background: linear-gradient(135deg, rgba(40, 20, 20, 0.9), rgba(60, 30, 20, 0.9)),
-                rgba(0, 0, 0, 0.5);
-}
-
-body.time-past #screen.in-memory.memory-time {
-    background: linear-gradient(135deg, rgba(20, 40, 40, 0.9), rgba(30, 50, 30, 0.9)),
-                rgba(0, 0, 0, 0.5);
-}
+/* Memory backgrounds now handled by portal overlay system */
 
 /* Dialogue Box */
 #dialogue-box {
@@ -353,6 +339,108 @@ body.time-final #card-slot {
     opacity: 0;
     pointer-events: none;
     transition: opacity 1s ease;
+}
+
+/* ========================================
+   MEMORY OVERLAY (PORTAL SYSTEM)
+   ======================================== */
+
+/* Full-screen overlay container */
+#memoryOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#memoryOverlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Portal clip - animated rectangle */
+#portalClip {
+    position: absolute;
+    overflow: hidden;
+    transition: all 0.8s cubic-bezier(0.2, 0.9, 0.2, 1);
+    /* Position and size set dynamically by JavaScript */
+}
+
+/* Memory scene - full-size background container */
+#memoryScene {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 3rem;
+}
+
+/* Memory backgrounds (set dynamically via JS) */
+#memoryScene.memory-voice {
+    background-image: url('memory_voice_bg.png');
+}
+
+#memoryScene.memory-space {
+    background-image: url('memory_space_bg.png');
+}
+
+#memoryScene.memory-time {
+    background-image: url('memory_time_bg.png');
+}
+
+/* Memory dialogue box (visual novel style) */
+#memoryDialogueBox {
+    width: 80%;
+    max-width: 800px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 2rem 2.5rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.5s ease 0.3s;
+}
+
+#memoryOverlay.active.portal-expanded #memoryDialogueBox {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#memoryDialogueText {
+    font-size: 18px;
+    line-height: 1.9;
+    color: rgba(255, 255, 255, 0.95);
+    text-align: center;
+    white-space: pre-line;
+    margin-bottom: 1rem;
+    min-height: 3em;
+}
+
+#memoryHint {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    text-align: center;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    animation: pulseHint 2s ease-in-out infinite;
+}
+
+@keyframes pulseHint {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+}
+
+/* Hide device UI when in memory */
+#memoryOverlay.active ~ #container {
+    /* Device UI remains visible beneath but not interactive */
 }
 
 /* Accessibility */
