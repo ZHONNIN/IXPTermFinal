@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Device</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="container">
+        <!-- The Device -->
+        <div id="device">
+            <!-- Two Buttons (fixed positions above screen) -->
+            <div id="buttons">
+                <button id="btn-left" class="device-button" aria-label="Switch time">
+                    <span class="button-label">PAST</span>
+                </button>
+                <button id="btn-right" class="device-button" aria-label="Activate memory">
+                    <span class="button-label">ENTER</span>
+                </button>
+            </div>
+
+            <!-- Screen Area (portal into memory) -->
+            <div id="screen">
+                <div id="screen-content">
+                    <p id="screen-text"></p>
+                </div>
+            </div>
+
+            <!-- Card Slot -->
+            <div id="card-slot">
+                <div id="slot-indicator"></div>
+            </div>
+        </div>
+
+        <!-- The Three Cards (always available) -->
+        <div id="cards-area">
+            <div class="card" id="card-voice" data-card="voice" draggable="true">
+                <img src="Card_Voice.png" alt="Voice">
+            </div>
+            <div class="card" id="card-space" data-card="space" draggable="true">
+                <img src="Card_Space.png" alt="Space">
+            </div>
+            <div class="card" id="card-time" data-card="time" draggable="true">
+                <img src="Card_Time.png" alt="Time">
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
