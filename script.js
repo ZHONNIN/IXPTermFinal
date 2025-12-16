@@ -36,6 +36,7 @@ const cards = document.querySelectorAll('.card');
 const memoryOverlay = document.getElementById('memoryOverlay');
 const portalClip = document.getElementById('portalClip');
 const memoryScene = document.getElementById('memoryScene');
+const memoryDialogueBox = document.getElementById('memoryDialogueBox');
 const memoryDialogueText = document.getElementById('memoryDialogueText');
 const memoryHint = document.getElementById('memoryHint');
 
@@ -119,6 +120,17 @@ function attachEventListeners() {
     cardSlot.addEventListener('drop', handleDrop);
     cardSlot.addEventListener('dragleave', handleDragLeave);
     cardSlot.addEventListener('click', handleSlotClick);
+
+    // Memory scene click-to-advance
+    memoryScene.addEventListener('click', handleMemorySceneClick);
+
+    // Prevent dialogue box clicks from advancing
+    memoryDialogueBox.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    // Enter key fallback for memory progression
+    document.addEventListener('keydown', handleKeyDown);
 }
 
 // Handle ENTER button
@@ -136,8 +148,28 @@ function handleEnterButton() {
 function handleEnterInPast() {
     if (state.experienceState === 'card_ready' && state.insertedCard) {
         enterMemoryPortal();
-    } else if (state.experienceState === 'in_memory') {
+    }
+    // Note: Memory progression now handled by click or Enter key
+}
+
+// Handle memory scene click (click-to-advance)
+function handleMemorySceneClick() {
+    if (state.experienceState === 'in_memory') {
         progressMemory();
+    }
+}
+
+// Handle keyboard input (Enter key fallback)
+function handleKeyDown(e) {
+    if (e.key === 'Enter') {
+        // In memory mode: advance dialogue
+        if (state.experienceState === 'in_memory') {
+            progressMemory();
+        }
+        // In other states: use button handler
+        else if (state.experienceState !== 'final') {
+            handleEnterButton();
+        }
     }
 }
 
