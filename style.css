@@ -26,9 +26,7 @@ body.time-now {
     background: url('DeviceNow.png') center/cover no-repeat;
 }
 
-body.time-final {
-    background: url('Present_BG.png') center/cover no-repeat;
-}
+/* Final state inherits NOW background (no special background) */
 
 /* Main Container - Three Column Layout */
 #container {
