@@ -8,31 +8,33 @@
 </head>
 <body class="time-past">
     <div id="container">
-        <!-- The Device (full viewport background) -->
+        <!-- Left Side: Card Deck -->
+        <div id="cards-area">
+            <div class="card" id="card-voice" data-card="voice" draggable="true">
+                <img src="CD_Voice.png" alt="Voice">
+            </div>
+            <div class="card" id="card-space" data-card="space" draggable="true">
+                <img src="CD_Space.png" alt="Space">
+            </div>
+            <div class="card" id="card-time" data-card="time" draggable="true">
+                <img src="CD_Time.png" alt="Time">
+            </div>
+        </div>
+
+        <!-- Center: The Device -->
         <div id="device">
-            <!-- Single Button (ENTER) -->
+            <!-- Two Physical Buttons (fixed hitboxes) -->
             <div id="buttons">
-                <button id="btn-enter" class="device-button" aria-label="Enter">
+                <button id="btn-left" class="device-button" aria-label="Toggle time">
+                    <span class="button-label">PAST</span>
+                </button>
+                <button id="btn-right" class="device-button" aria-label="Enter">
                     <span class="button-label">ENTER</span>
                 </button>
             </div>
 
-            <!-- Screen Area -->
+            <!-- Screen Area (portal origin) -->
             <div id="screen">
-                <!-- Inventory (inside screen) -->
-                <div id="inventory">
-                    <div class="inventory-slot" data-object="page">
-                        <div class="object-icon"></div>
-                    </div>
-                    <div class="inventory-slot" data-object="bag">
-                        <div class="object-icon"></div>
-                    </div>
-                    <div class="inventory-slot" data-object="watch">
-                        <div class="object-icon"></div>
-                    </div>
-                </div>
-
-                <!-- Screen Content (memory/dialogue) -->
                 <div id="screen-content">
                     <div id="dialogue-box">
                         <p id="dialogue-text">...</p>
@@ -40,22 +42,37 @@
                 </div>
             </div>
 
-            <!-- Card Slot -->
+            <!-- Card Slot (bottom edge) -->
             <div id="card-slot">
                 <div id="slot-indicator"></div>
             </div>
         </div>
 
-        <!-- The Three Cards (always available) -->
-        <div id="cards-area">
-            <div class="card" id="card-voice" data-card="voice" draggable="true">
-                <img src="Card_Voice.png" alt="Voice">
+        <!-- Right Side: Inventory Panel -->
+        <div id="inventory-panel">
+            <div class="inventory-slot" data-object="page">
+                <div class="object-icon"></div>
+                <div class="object-label">Page</div>
             </div>
-            <div class="card" id="card-space" data-card="space" draggable="true">
-                <img src="Card_Space.png" alt="Space">
+            <div class="inventory-slot" data-object="bag">
+                <div class="object-icon"></div>
+                <div class="object-label">Bag</div>
             </div>
-            <div class="card" id="card-time" data-card="time" draggable="true">
-                <img src="Card_Time.png" alt="Time">
+            <div class="inventory-slot" data-object="watch">
+                <div class="object-icon"></div>
+                <div class="object-label">Watch</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Overlay (Portal Layer) -->
+    <div id="memoryOverlay">
+        <div id="portalClip">
+            <div id="memoryScene">
+                <div id="memoryDialogueBox">
+                    <p id="memoryDialogueText"></p>
+                    <div id="memoryHint">Click anywhere to continue</div>
+                </div>
             </div>
         </div>
     </div>

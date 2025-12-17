@@ -12,7 +12,8 @@ const state = {
     },
 
     currentMemoryStep: 0,
-    currentMemory: null
+    currentMemory: null,
+    screenRect: null // Stored screen bounding box for portal animation
 };
 
 // Card to Object mapping
@@ -22,20 +23,29 @@ const cardToObject = {
     time: 'watch'
 };
 
-// DOM Elements
+// DOM Elements - Device UI
 const body = document.body;
 const screen = document.getElementById('screen');
 const dialogueText = document.getElementById('dialogue-text');
-const btnEnter = document.getElementById('btn-enter');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
 const cardSlot = document.getElementById('card-slot');
 const slotIndicator = document.getElementById('slot-indicator');
 const cards = document.querySelectorAll('.card');
 
-// Inventory slots
+// DOM Elements - Memory Overlay (Portal)
+const memoryOverlay = document.getElementById('memoryOverlay');
+const portalClip = document.getElementById('portalClip');
+const memoryScene = document.getElementById('memoryScene');
+const memoryDialogueBox = document.getElementById('memoryDialogueBox');
+const memoryDialogueText = document.getElementById('memoryDialogueText');
+const memoryHint = document.getElementById('memoryHint');
+
+// Inventory slots (now in #inventory-panel)
 const inventorySlots = {
-    page: document.querySelector('[data-object="page"]'),
-    bag: document.querySelector('[data-object="bag"]'),
-    watch: document.querySelector('[data-object="watch"]')
+    page: document.querySelector('#inventory-panel [data-object="page"]'),
+    bag: document.querySelector('#inventory-panel [data-object="bag"]'),
+    watch: document.querySelector('#inventory-panel [data-object="watch"]')
 };
 
 // Memory Content (PAST)
@@ -98,7 +108,9 @@ function init() {
 
 // Event Listeners
 function attachEventListeners() {
-    btnEnter.addEventListener('click', handleEnterButton);
+    // Two physical buttons
+    btnLeft.addEventListener('click', handleLeftButton);
+    btnRight.addEventListener('click', handleRightButton);
 
     // Card interactions
     cards.forEach(card => {
@@ -111,10 +123,42 @@ function attachEventListeners() {
     cardSlot.addEventListener('drop', handleDrop);
     cardSlot.addEventListener('dragleave', handleDragLeave);
     cardSlot.addEventListener('click', handleSlotClick);
+
+    // Memory scene click-to-advance
+    memoryScene.addEventListener('click', handleMemorySceneClick);
+
+    // Prevent dialogue box clicks from advancing
+    memoryDialogueBox.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    // Enter key fallback
+    document.addEventListener('keydown', handleKeyDown);
 }
 
-// Handle ENTER button
-function handleEnterButton() {
+// Handle LEFT button (toggle PAST/NOW)
+function handleLeftButton() {
+    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
+        return; // Cannot toggle during memory or in final state
+    }
+
+    // Toggle between PAST and NOW
+    if (state.timeMode === 'past') {
+        // Can only switch to NOW if all objects collected
+        if (allObjectsCollected()) {
+            transitionToNow();
+        }
+    } else if (state.timeMode === 'now') {
+        // Can switch back to PAST (e.g., to review)
+        state.timeMode = 'past';
+        body.classList.remove('time-now');
+        body.classList.add('time-past');
+        updateButtonState();
+    }
+}
+
+// Handle RIGHT button (ENTER/confirm)
+function handleRightButton() {
     if (state.experienceState === 'final') return;
 
     if (state.timeMode === 'past') {
@@ -127,20 +171,81 @@ function handleEnterButton() {
 // ENTER in PAST mode
 function handleEnterInPast() {
     if (state.experienceState === 'card_ready' && state.insertedCard) {
-        enterMemory();
-    } else if (state.experienceState === 'in_memory') {
+        enterMemoryPortal();
+    }
+    // Note: Memory progression now handled by click or Enter key
+}
+
+// Handle memory scene click (click-to-advance)
+function handleMemorySceneClick() {
+    if (state.experienceState === 'in_memory') {
         progressMemory();
     }
 }
 
-// Enter memory (PAST)
-function enterMemory() {
+// Handle keyboard input (Enter key fallback)
+function handleKeyDown(e) {
+    if (e.key === 'Enter') {
+        // In memory mode: advance dialogue
+        if (state.experienceState === 'in_memory') {
+            progressMemory();
+        }
+        // In other states: use right button handler
+        else if (state.experienceState !== 'final') {
+            handleRightButton();
+        }
+    }
+}
+
+// ========================================
+// PORTAL EXPANSION - Enter Memory
+// ========================================
+function enterMemoryPortal() {
     state.experienceState = 'in_memory';
     state.currentMemory = memories[state.insertedCard];
     state.currentMemoryStep = 0;
 
-    screen.classList.add('in-memory', `memory-${state.insertedCard}`);
-    setDialogue(state.currentMemory[0]);
+    // Get screen bounding box
+    const rect = screen.getBoundingClientRect();
+    state.screenRect = {
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height
+    };
+
+    // Set memory scene background
+    memoryScene.className = '';
+    memoryScene.classList.add(`memory-${state.insertedCard}`);
+
+    // Set initial memory dialogue
+    memoryDialogueText.textContent = state.currentMemory[0];
+
+    // Show overlay
+    memoryOverlay.classList.add('active');
+
+    // Set portal clip to screen position (start state)
+    portalClip.style.left = `${state.screenRect.left}px`;
+    portalClip.style.top = `${state.screenRect.top}px`;
+    portalClip.style.width = `${state.screenRect.width}px`;
+    portalClip.style.height = `${state.screenRect.height}px`;
+
+    // Force reflow
+    portalClip.offsetHeight;
+
+    // Next frame: expand to full viewport
+    requestAnimationFrame(() => {
+        portalClip.style.left = '0';
+        portalClip.style.top = '0';
+        portalClip.style.width = '100vw';
+        portalClip.style.height = '100vh';
+
+        // After expansion completes, mark as expanded
+        setTimeout(() => {
+            memoryOverlay.classList.add('portal-expanded');
+        }, 800);
+    });
+
     updateButtonState();
 }
 
@@ -149,8 +254,10 @@ function progressMemory() {
     state.currentMemoryStep++;
 
     if (state.currentMemoryStep < state.currentMemory.length) {
-        setDialogue(state.currentMemory[state.currentMemoryStep]);
+        // Update memory dialogue
+        memoryDialogueText.textContent = state.currentMemory[state.currentMemoryStep];
     } else {
+        // Memory complete
         completeMemory();
     }
 }
@@ -162,15 +269,42 @@ function completeMemory() {
     // Set object to blurry_collected
     state.objects[objectName] = 'blurry_collected';
 
-    // Show object briefly (blurred)
-    showObjectObtained(objectName);
-
     // Update inventory
     updateInventoryUI();
 
-    // Return to idle after delay
+    // Show brief completion message
+    memoryDialogueText.textContent = `[${objectName}]`;
+    memoryHint.style.display = 'none';
+
+    // Exit memory after delay
     setTimeout(() => {
-        exitMemory();
+        exitMemoryPortal();
+    }, 2000);
+}
+
+// ========================================
+// PORTAL CONTRACTION - Exit Memory
+// ========================================
+function exitMemoryPortal() {
+    // Remove expanded class
+    memoryOverlay.classList.remove('portal-expanded');
+
+    // Contract portal back to screen rect
+    portalClip.style.left = `${state.screenRect.left}px`;
+    portalClip.style.top = `${state.screenRect.top}px`;
+    portalClip.style.width = `${state.screenRect.width}px`;
+    portalClip.style.height = `${state.screenRect.height}px`;
+
+    // After contraction completes
+    setTimeout(() => {
+        // Hide overlay
+        memoryOverlay.classList.remove('active');
+
+        // Reset memory scene
+        memoryScene.className = '';
+        memoryHint.style.display = 'block';
+
+        // Eject card
         ejectCard();
 
         // Check if all objects collected → transition to NOW
@@ -181,30 +315,13 @@ function completeMemory() {
         } else {
             setDialogue("...");
         }
-    }, 2500);
-}
 
-// Show object obtained (blurred)
-function showObjectObtained(objectName) {
-    const objectImg = document.createElement('img');
-    objectImg.src = `Object_${objectName.charAt(0).toUpperCase() + objectName.slice(1)}.png`;
-    objectImg.className = 'object-obtained';
-    objectImg.alt = objectName;
-
-    screen.appendChild(objectImg);
-
-    setTimeout(() => {
-        objectImg.remove();
-    }, 2500);
-}
-
-// Exit memory state
-function exitMemory() {
-    state.experienceState = 'idle';
-    state.currentMemory = null;
-    state.currentMemoryStep = 0;
-    screen.classList.remove('in-memory', 'memory-voice', 'memory-space', 'memory-time');
-    updateButtonState();
+        // Reset state
+        state.experienceState = 'idle';
+        state.currentMemory = null;
+        state.currentMemoryStep = 0;
+        updateButtonState();
+    }, 800);
 }
 
 // Check if all objects collected (blurry or clarified)
@@ -414,19 +531,34 @@ function updateInventoryUI() {
 
 // Update button state
 function updateButtonState() {
+    // Update left button label and state
+    if (state.timeMode === 'past') {
+        btnLeft.querySelector('.button-label').textContent = 'PAST';
+        btnLeft.disabled = !allObjectsCollected();
+    } else if (state.timeMode === 'now') {
+        btnLeft.querySelector('.button-label').textContent = 'NOW';
+        btnLeft.disabled = false;
+    }
+
+    // Disable left button during memory or final
+    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
+        btnLeft.disabled = true;
+    }
+
+    // Update right button (ENTER) state
     if (state.experienceState === 'final') {
-        btnEnter.disabled = true;
-        btnEnter.classList.remove('active');
+        btnRight.disabled = true;
+        btnRight.classList.remove('active');
     } else if (state.experienceState === 'card_ready' || state.experienceState === 'in_memory') {
-        btnEnter.disabled = false;
-        btnEnter.classList.add('active');
+        btnRight.disabled = false;
+        btnRight.classList.add('active');
     } else {
-        btnEnter.disabled = true;
-        btnEnter.classList.remove('active');
+        btnRight.disabled = true;
+        btnRight.classList.remove('active');
     }
 }
 
-// Set dialogue text
+// Set dialogue text (device screen)
 function setDialogue(text) {
     dialogueText.textContent = text;
 }
