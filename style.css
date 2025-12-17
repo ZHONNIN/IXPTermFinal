@@ -26,9 +26,7 @@ body.time-now {
     background: url('DeviceNow.png') center/cover no-repeat;
 }
 
-body.time-final {
-    background: url('Present_BG.png') center/cover no-repeat;
-}
+/* Final state inherits NOW background (no special background) */
 
 /* Main Container - Three Column Layout */
 #container {
@@ -133,22 +131,21 @@ body.time-final {
 .device-button {
     width: 90px;
     height: 45px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    border: none;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: 'Courier New', monospace;
     font-size: 11px;
     font-weight: bold;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.3);
     letter-spacing: 1.5px;
 }
 
 .device-button:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.4);
-    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .device-button:active {
@@ -156,14 +153,13 @@ body.time-final {
 }
 
 .device-button:disabled {
-    opacity: 0.2;
+    opacity: 0.15;
     cursor: not-allowed;
 }
 
 .device-button.active {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-    color: rgba(255, 255, 255, 1);
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.85);
 }
 
 /* Screen Area (portal origin) - moved down slightly */
@@ -174,8 +170,8 @@ body.time-final {
     transform: translateX(-50%);
     width: 85%;
     height: 48%;
-    background: rgba(0, 0, 0, 0.7);
-    border: 3px solid rgba(255, 255, 255, 0.25);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -185,7 +181,7 @@ body.time-final {
 }
 
 #screen.in-memory {
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Stage 0: Intro screen styling */
@@ -228,14 +224,14 @@ body.intro-mode #card-slot {
 #dialogue-box {
     width: 100%;
     padding: 1.5rem;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
 }
 
 #dialogue-text {
     font-size: 15px;
     line-height: 1.8;
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.85);
     text-align: center;
     white-space: pre-line;
 }
@@ -248,8 +244,8 @@ body.intro-mode #card-slot {
     transform: translateX(-50%);
     width: 75%;
     height: 70px;
-    background: rgba(0, 0, 0, 0.5);
-    border: 2px solid rgba(255, 255, 255, 0.25);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -259,19 +255,19 @@ body.intro-mode #card-slot {
 }
 
 #card-slot.has-card {
-    border-color: rgba(255, 255, 255, 0.6);
-    background: rgba(255, 255, 255, 0.15);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
 }
 
 #card-slot.drag-over {
-    border-color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.12);
 }
 
 #slot-indicator {
     font-size: 12px;
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.5);
     letter-spacing: 3px;
     font-weight: bold;
     text-transform: uppercase;
@@ -287,8 +283,8 @@ body.intro-mode #card-slot {
     flex-direction: column;
     gap: 1.5rem;
     padding: 2rem 1rem;
-    background: rgba(0, 0, 0, 0.4);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     z-index: 10;
 }
@@ -299,8 +295,8 @@ body.intro-mode #card-slot {
     align-items: center;
     gap: 0.5rem;
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 8px;
     transition: all 0.3s ease;
 }
