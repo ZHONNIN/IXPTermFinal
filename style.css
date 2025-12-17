@@ -188,6 +188,34 @@ body.time-final {
     border-color: rgba(255, 255, 255, 0.4);
 }
 
+/* Stage 0: Intro screen styling */
+#screen.intro-screen {
+    border-color: rgba(255, 100, 100, 0.3);
+    animation: introFlicker 3s ease-in-out infinite;
+    cursor: pointer;
+}
+
+@keyframes introFlicker {
+    0%, 100% { opacity: 0.7; }
+    50% { opacity: 1; }
+}
+
+/* Intro mode: reduce card and inventory visibility */
+body.intro-mode #cards-area {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+body.intro-mode #inventory-panel {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+body.intro-mode #card-slot {
+    opacity: 0.3;
+    pointer-events: none;
+}
+
 #screen-content {
     flex: 1;
     display: flex;

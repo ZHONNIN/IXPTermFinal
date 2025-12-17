@@ -1,5 +1,6 @@
 // State System
 const state = {
+    introComplete: false, // Stage 0 tracking
     timeMode: 'past', // 'past', 'now', 'final'
     experienceState: 'idle', // 'idle', 'card_ready', 'in_memory', 'final'
     insertedCard: null, // 'voice', 'space', 'time'
@@ -100,10 +101,16 @@ const finalMessage = "I can't change what happened.\n\nBut I can choose\nwhat it
 
 // Initialize
 function init() {
-    setDialogue("...");
-    updateInventoryUI();
     attachEventListeners();
-    updateButtonState();
+
+    // Check if Stage 0 (intro) needs to be shown
+    if (!state.introComplete) {
+        showIntro();
+    } else {
+        setDialogue("...");
+        updateInventoryUI();
+        updateButtonState();
+    }
 }
 
 // Event Listeners
@@ -134,10 +141,51 @@ function attachEventListeners() {
 
     // Enter key fallback
     document.addEventListener('keydown', handleKeyDown);
+
+    // Intro screen click-to-proceed
+    screen.addEventListener('click', handleIntroClick);
+}
+
+// ========================================
+// STAGE 0: INTRO
+// ========================================
+function showIntro() {
+    // Set intro text on screen
+    const introText = "System Status: Uncalibrated\n\nInternal parameters are misaligned.\n\nInsert calibration modules to restore the machine.";
+    setDialogue(introText);
+
+    // Add visual indicator (subtle)
+    body.classList.add('intro-mode');
+    screen.classList.add('intro-screen');
+
+    // Disable all interactions
+    updateButtonState();
+}
+
+function handleIntroClick() {
+    if (!state.introComplete) {
+        exitIntro();
+    }
+}
+
+function exitIntro() {
+    // Mark intro as complete
+    state.introComplete = true;
+
+    // Remove intro styling
+    body.classList.remove('intro-mode');
+    screen.classList.remove('intro-screen');
+
+    // Initialize normal state
+    setDialogue("...");
+    updateInventoryUI();
+    updateButtonState();
 }
 
 // Handle LEFT button (toggle PAST/NOW)
 function handleLeftButton() {
+    if (!state.introComplete) return; // No interaction during intro
+
     if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
         return; // Cannot toggle during memory or in final state
     }
@@ -159,6 +207,7 @@ function handleLeftButton() {
 
 // Handle RIGHT button (ENTER/confirm)
 function handleRightButton() {
+    if (!state.introComplete) return; // No interaction during intro
     if (state.experienceState === 'final') return;
 
     if (state.timeMode === 'past') {
@@ -186,6 +235,12 @@ function handleMemorySceneClick() {
 // Handle keyboard input (Enter key fallback)
 function handleKeyDown(e) {
     if (e.key === 'Enter') {
+        // In intro: proceed to main experience
+        if (!state.introComplete) {
+            exitIntro();
+            return;
+        }
+
         // In memory mode: advance dialogue
         if (state.experienceState === 'in_memory') {
             progressMemory();
@@ -406,7 +461,7 @@ function transitionToFinal() {
 
 // Card drag handlers
 function handleDragStart(e) {
-    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
+    if (!state.introComplete || state.experienceState === 'in_memory' || state.experienceState === 'final') {
         e.preventDefault();
         return;
     }
@@ -420,7 +475,7 @@ function handleDragEnd(e) {
 }
 
 function handleDragOver(e) {
-    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
+    if (!state.introComplete || state.experienceState === 'in_memory' || state.experienceState === 'final') {
         return;
     }
     e.preventDefault();
@@ -433,7 +488,7 @@ function handleDragLeave(e) {
 }
 
 function handleDrop(e) {
-    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
+    if (!state.introComplete || state.experienceState === 'in_memory' || state.experienceState === 'final') {
         return;
     }
 
@@ -447,7 +502,7 @@ function handleDrop(e) {
 
 // Card click (alternative to drag)
 function handleCardClick(e) {
-    if (state.experienceState === 'in_memory' || state.experienceState === 'final') {
+    if (!state.introComplete || state.experienceState === 'in_memory' || state.experienceState === 'final') {
         return;
     }
 
@@ -531,6 +586,14 @@ function updateInventoryUI() {
 
 // Update button state
 function updateButtonState() {
+    // Disable both buttons during intro
+    if (!state.introComplete) {
+        btnLeft.disabled = true;
+        btnRight.disabled = true;
+        btnRight.classList.remove('active');
+        return;
+    }
+
     // Update left button label and state
     if (state.timeMode === 'past') {
         btnLeft.querySelector('.button-label').textContent = 'PAST';
